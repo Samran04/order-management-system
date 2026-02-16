@@ -1,0 +1,7 @@
+{
+  "name": "Uniform Studio 81 - Order Management System",
+  "description": "A comprehensive order management and production tracking system for Uniform Studio 81, allowing sales teams to create sampling and production orders, and production teams to track status and handle post-delivery issues.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

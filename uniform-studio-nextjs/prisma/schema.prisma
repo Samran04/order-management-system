@@ -1,0 +1,180 @@
+// ============================================
+// PRISMA SCHEMA - Database Configuration
+// ============================================
+// This file defines the database structure for the Order Management System
+// It uses PostgreSQL as the database and Prisma as the ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER MODEL
+// ============================================
+// Stores user accounts with authentication and role information
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash") // Hashed password (never store plain text!)
+  name         String
+  role         Role     // User's role (Admin, Sales, Production)
+  organization String?  // Optional company/organization name
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  // Relationships
+  orders       Order[]  @relation("SalesPerson") // Orders created by this user
+  notifications Notification[] // Notifications for this user
+  
+  @@map("users") // Table name in database
+}
+
+// ============================================
+// ROLE ENUM
+// ============================================
+// Defines the different user roles in the system
+enum Role {
+  Admin      // Full system access
+  Sales      // Can create and manage orders
+  Production // Can update production status
+}
+
+// ============================================
+// ORDER MODEL
+// ============================================
+// Main order/batch information for uniform production
+model Order {
+  id                String           @id @default(uuid())
+  orderNumber       String           @unique @map("order_number") // e.g., "OS-2025290"
+  type              OrderType        // Pre-production sample or final production
+  date              DateTime         // Order creation date
+  startDate         DateTime         @map("start_date") // Production start date
+  deliveryDate      DateTime         @map("delivery_date") // Target delivery date
+  
+  // Client Information
+  clientName        String           @map("client_name")
+  brand             String
+  
+  // Product Details
+  productName       String           @map("product_name")
+  itemDescription   String           @map("item_description")
+  fabric            String[]         // Array of fabric types
+  color             String
+  sleeve            String           // e.g., "Short Sleeve", "Long Sleeve"
+  fabricSupplier    String[]         @map("fabric_supplier")
+  accessories       String[]         // e.g., ["Rib Collar", "2 Buttons"]
+  patternFollowed   String           @map("pattern_followed") // Pattern reference
+  
+  // Pricing & Manufacturing
+  cmPrice           Float[]          @map("cm_price") // Contract manufacturing prices
+  cmUnit            String[]         @map("cm_unit") // Units (e.g., "CRT")
+  cmPartner         String           @map("cm_partner") // Manufacturing partner
+  embroideryPrint   String[]         @map("embroidery_print") // Print/embroidery details
+  
+  // Quantities
+  sizes             Json             // Store as JSON: [{ size: "M", quantity: 4 }]
+  totalQuantity     Int              @map("total_quantity")
+  
+  // Media
+  images            String[]         // Array of image URLs
+  logoImage         String?          @map("logo_image") // Optional brand logo
+  
+  // Status & Notes
+  status            ProductionStatus // Current production stage
+  notes             String?          // Additional notes
+  
+  // Timestamps
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  
+  // Relationships
+  salesPersonId     String           @map("sales_person_id")
+  salesPerson       User             @relation("SalesPerson", fields: [salesPersonId], references: [id])
+  postDelivery      PostDelivery?    // Optional post-delivery inspection
+  
+  @@map("orders")
+}
+
+// ============================================
+// ORDER TYPE ENUM
+// ============================================
+enum OrderType {
+  PreProductionSample  @map("Pre Production Sample")
+  FinalProduction      @map("Final Production")
+}
+
+// ============================================
+// PRODUCTION STATUS ENUM
+// ============================================
+// Tracks the current stage of order production
+enum ProductionStatus {
+  OrderReceived        @map("Order Received")
+  Inspection
+  Cutting
+  Stitching
+  EmbroideryPrinting   @map("Embroidery/Printing")
+  QualityCheck         @map("Quality Check")
+  Packing
+  Delivered
+}
+
+// ============================================
+// POST DELIVERY MODEL
+// ============================================
+// Records post-delivery inspection and any issues
+model PostDelivery {
+  id             String         @id @default(uuid())
+  orderId        String         @unique @map("order_id")
+  status         DeliveryStatus // Successful or needs alteration
+  reason         String?        // Reason if alteration needed
+  solution       String?        // Proposed solution
+  loggedAt       DateTime       @default(now()) @map("logged_at")
+  salesComments  String?        @map("sales_comments") // Additional comments
+  
+  // Relationships
+  order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  @@map("post_delivery")
+}
+
+// ============================================
+// DELIVERY STATUS ENUM
+// ============================================
+enum DeliveryStatus {
+  Successful
+  AlterationRequired @map("Alteration Required")
+}
+
+// ============================================
+// NOTIFICATION MODEL
+// ============================================
+// System notifications for users
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  title     String           // Notification title
+  message   String           // Notification message
+  type      NotificationType // Type of notification
+  read      Boolean          @default(false) // Read status
+  createdAt DateTime         @default(now()) @map("created_at")
+  
+  // Relationships
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+// ============================================
+// NOTIFICATION TYPE ENUM
+// ============================================
+enum NotificationType {
+  info    // General information
+  success // Success message
+  alert   // Important alert
+  message // User message
+}
