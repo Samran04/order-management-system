@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Plus, X, Search, Edit2, Printer, ChevronDown, Download, Phone, Send, Save, Clock } from 'lucide-react';
 import { Order, OrderType, SizeQuantity, User } from '../types';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import OrderSheetPDF from './OrderPDF';
 
 interface Props {
   orders: Order[];
@@ -21,7 +23,7 @@ interface ItemForm {
   embroideryPrint: string[];
   fabricSupplier: string[];
   patternFollowed: string;
-  cmPrice: string[]; 
+  cmPrice: string[];
   cmUnit: string[];
   images: string[];
   sizes: SizeQuantity[];
@@ -32,9 +34,9 @@ interface ItemForm {
 const TOP_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 const BOTTOM_SIZES = ['28', '30', '32', '34', '36', '38', '40', '42'];
 
-const MultiInput = ({ label, field, placeholder, values, onAdd, onChange, onRemove }: { 
-  label: string, 
-  field: keyof ItemForm, 
+const MultiInput = ({ label, field, placeholder, values, onAdd, onChange, onRemove }: {
+  label: string,
+  field: keyof ItemForm,
   placeholder: string,
   values: string[],
   onAdd: () => void,
@@ -44,10 +46,10 @@ const MultiInput = ({ label, field, placeholder, values, onAdd, onChange, onRemo
   <div className="space-y-1.5">
     <div className="flex justify-between items-center px-1">
       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label}</label>
-      <button 
-        type="button" 
+      <button
+        type="button"
         tabIndex={-1}
-        onClick={onAdd} 
+        onClick={onAdd}
         className="bg-slate-50 hover:bg-[#EAB308] text-[#EAB308] hover:text-black w-6 h-6 rounded-lg flex items-center justify-center transition-all shadow-sm border border-slate-100 cursor-pointer"
       >
         <Plus size={14} className="stroke-[3px]" />
@@ -56,17 +58,17 @@ const MultiInput = ({ label, field, placeholder, values, onAdd, onChange, onRemo
     <div className="space-y-2">
       {values.map((val, idx) => (
         <div key={idx} className="relative flex items-center group">
-          <input 
-            placeholder={placeholder} 
-            value={val} 
-            onChange={(e) => onChange(idx, e.target.value)} 
-            className="w-full p-4 bg-white border border-slate-200 rounded-2xl font-black text-xs outline-none focus:border-[#EAB308]/50 transition-colors shadow-sm" 
+          <input
+            placeholder={placeholder}
+            value={val}
+            onChange={(e) => onChange(idx, e.target.value)}
+            className="w-full p-4 bg-white border border-slate-200 rounded-2xl font-black text-xs outline-none focus:border-[#EAB308]/50 transition-colors shadow-sm"
           />
           {values.length > 1 && (
-            <button 
+            <button
               type="button"
               tabIndex={-1}
-              onClick={() => onRemove(idx)} 
+              onClick={() => onRemove(idx)}
               className="absolute right-3 p-1 text-slate-300 hover:text-red-500 transition-colors cursor-pointer"
             >
               <X size={14} />
@@ -83,14 +85,14 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
   const [activeTab, setActiveTab] = useState(0);
   const [registrySearch, setRegistrySearch] = useState('');
   const [editingOrderNumber, setEditingOrderNumber] = useState<string | null>(null);
-  const printRef = useRef<HTMLDivElement>(null);
+
 
   const [headerData, setHeaderData] = useState({
     orderNumber: '',
     type: 'Final Production' as OrderType,
     clientName: '',
     brand: '',
-    startDate: '', 
+    startDate: '',
     deliveryDate: '',
   });
 
@@ -104,14 +106,14 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
       accessories: [''],
       fabric: [''],
       color: '',
-      sleeve: '', 
+      sleeve: '',
       embroideryPrint: [''],
       fabricSupplier: [''],
       patternFollowed: '',
-      cmPrice: [''], 
+      cmPrice: [''],
       cmUnit: [''],
-      images: [], 
-      sizes: TOP_SIZES.map(s => ({ size: s, quantity: 0 })), 
+      images: [],
+      sizes: TOP_SIZES.map(s => ({ size: s, quantity: 0 })),
       totalQuantity: 0,
       sizeCategory: 'Top'
     };
@@ -123,7 +125,7 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
       type: 'Final Production' as OrderType,
       clientName: '',
       brand: '',
-      startDate: '', 
+      startDate: '',
       deliveryDate: '',
     });
     setItems([createNewItem()]);
@@ -142,7 +144,7 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
       type: base.type,
       clientName: base.clientName,
       brand: base.brand,
-      startDate: base.startDate, 
+      startDate: base.startDate,
       deliveryDate: base.deliveryDate.split('T')[0],
     });
 
@@ -280,22 +282,7 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
     setItems(newItems);
   };
 
-  const downloadPDF = async () => {
-    if (!printRef.current) return;
-    const element = printRef.current;
-    const opt = {
-      margin: 0,
-      filename: `Uniform_Studio_81_OrderSheet_${headerData.orderNumber || 'Draft'}.pdf`,
-      image: { type: 'jpeg', quality: 1.0 },
-      html2canvas: { scale: 3, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    };
-    try {
-      await (window as any).html2pdf().set(opt).from(element).save();
-    } catch (error) {
-      console.error("PDF Generation Error:", error);
-    }
-  };
+
 
   const finalizeSheet = async () => {
     if (!headerData.orderNumber || !headerData.clientName) {
@@ -316,7 +303,7 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
       cmPrice: item.cmPrice.map(p => parseFloat(p) || 0),
       startDate: startTimestamp,
       deliveryDate: deadlineTimestamp,
-      id: item.id.length > 10 ? item.id : Math.random().toString(36).substr(2, 9), 
+      id: item.id.length > 10 ? item.id : Math.random().toString(36).substr(2, 9),
       salesPerson: currentUser.name,
       date: new Date().toISOString(),
       status: 'Order Received' as any,
@@ -343,9 +330,9 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
   const filteredGroups = Object.keys(orderGroups).filter(key => {
     const group = orderGroups[key];
     const search = registrySearch.toLowerCase();
-    return key.toLowerCase().includes(search) || 
-           group[0].clientName.toLowerCase().includes(search) ||
-           group.some(o => o.productName.toLowerCase().includes(search));
+    return key.toLowerCase().includes(search) ||
+      group[0].clientName.toLowerCase().includes(search) ||
+      group.some(o => o.productName.toLowerCase().includes(search));
   });
 
   const currentItem = items[activeTab];
@@ -362,164 +349,7 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
 
   return (
     <div className="space-y-4">
-      {/* 
-        MASTER TEMPLATE PDF (HIDDEN)
-        Strict pixel-perfect recreation of the Master Template scanned file.
-        Format: A4 Landscape (297mm x 210mm)
-      */}
-      <div className="hidden">
-        <div ref={printRef} className="bg-white text-black font-sans flex flex-col box-border border-2 border-black" 
-          style={{ width: '297mm', height: '210mm', color: 'black', padding: '10mm', margin: '0 auto' }}>
-          
-          {/* Header Bar */}
-          <div className="flex justify-between items-center mb-2 px-1">
-            <div className="flex items-center gap-3">
-              <div className="bg-[#EAB308] p-2 rounded flex items-center justify-center shadow-sm">
-                <span className="font-black text-black text-3xl italic">US</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-black text-2xl tracking-tighter leading-none">UNIFORM</span>
-                <span className="font-black text-2xl tracking-tighter leading-none">STUDIO 81</span>
-              </div>
-            </div>
-            <div className="flex flex-col items-end">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[12px] font-black text-black tracking-tight">+971 67411456</span>
-                <div className="bg-[#EAB308] p-0.5 rounded-full"><Phone size={12} className="text-black" /></div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[12px] font-black text-black tracking-tight">www.efzeefashion.com</span>
-                <div className="bg-[#EAB308] p-0.5 rounded-full"><Send size={12} className="text-black fill-black" /></div>
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-[#E2E8F0] border border-black text-center py-2 font-black text-[14px] tracking-[0.5em] uppercase mb-1">
-            ORDER SHEET
-          </div>
-
-          {/* Metadata Grid (5 rows x 4 cells) */}
-          <table className="w-full border-collapse text-[11px] font-bold mb-1 border-black border">
-            <tbody>
-              <tr>
-                <td className="border border-black px-4 py-2 w-[18%] uppercase bg-white">ORDER SHEET NO</td>
-                <td className="border border-black px-4 py-2 w-[32%] text-left uppercase text-[12px] font-black">{headerData.orderNumber || ''}</td>
-                <td className="border border-black px-4 py-2 w-[18%] uppercase bg-white">START DATE</td>
-                <td className="border border-black px-4 py-2 w-[32%] text-left uppercase">{formatDate(headerData.startDate) || ''}</td>
-              </tr>
-              <tr>
-                <td className="border border-black px-4 py-2 uppercase bg-white">ORDER DATE</td>
-                <td className="border border-black px-4 py-2 text-left uppercase">{formatDate(new Date().toISOString()) || ''}</td>
-                <td className="border border-black px-4 py-2 uppercase bg-white">DELIVERY DATE</td>
-                <td className="border border-black px-4 py-2 text-left uppercase text-red-600 font-black">{formatDate(headerData.deliveryDate) || ''}</td>
-              </tr>
-              <tr>
-                <td className="border border-black px-4 py-2 uppercase bg-white">BRAND</td>
-                <td className="border border-black px-4 py-2 text-left uppercase">{headerData.clientName || ''}</td>
-                <td className="border border-black px-4 py-2 uppercase bg-white">FABRIC</td>
-                <td className="border border-black px-4 py-2 text-left uppercase">{items[0]?.fabric[0] || ''}</td>
-              </tr>
-              <tr>
-                <td className="border border-black px-4 py-2 uppercase bg-white">CM UNIT</td>
-                <td className="border border-black px-4 py-2 text-left uppercase">{items[0]?.cmUnit[0] || ''}</td>
-                <td className="border border-black px-4 py-2 uppercase bg-white">FABRIC SUPPLIER</td>
-                <td className="border border-black px-4 py-2 text-left uppercase">{items[0]?.fabricSupplier[0] || ''}</td>
-              </tr>
-              <tr>
-                <td className="border border-black px-4 py-2 uppercase bg-white">CM PRICE</td>
-                <td className="border border-black px-4 py-2 text-left uppercase">{items[0]?.cmPrice[0] ? `${items[0].cmPrice[0]}/-` : ''}</td>
-                <td className="border border-black px-4 py-2 uppercase bg-white">PATTERN FOLLOWED</td>
-                <td className="border border-black px-4 py-2 text-left uppercase">{items[0]?.patternFollowed || ''}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          {/* Main Production Grid */}
-          <div className="mb-1">
-            <table className="w-full border-collapse border-2 border-black text-[11px] font-bold table-fixed">
-              <thead>
-                <tr className="bg-[#E2E8F0]">
-                  <th rowSpan={2} className="border border-black w-[50px] text-center align-middle font-black text-[12px] py-4">S/N</th>
-                  <th rowSpan={2} className="border border-black w-[400px] text-center align-middle font-black text-[12px] py-4 uppercase">ITEM DESCRIPTION</th>
-                  <th colSpan={9} className="border border-black text-center py-2.5 uppercase tracking-widest bg-[#E2E8F0] font-black text-[12px]">SIZE-WISE QUANTITY</th>
-                  <th rowSpan={2} className="border border-black w-[100px] text-center align-middle font-black text-[12px] py-4 uppercase">TOTAL</th>
-                </tr>
-                <tr className="bg-[#F8FAFC]">
-                  <th className="border border-black w-[42px] text-center text-[10px] py-2 font-black uppercase">XS/28</th>
-                  <th className="border border-black w-[42px] text-center text-[10px] py-2 font-black uppercase">S</th>
-                  <th className="border border-black w-[42px] text-center text-[10px] py-2 font-black uppercase">M</th>
-                  <th className="border border-black w-[42px] text-center text-[10px] py-2 font-black uppercase">L</th>
-                  <th className="border border-black w-[42px] text-center text-[10px] py-2 font-black uppercase">XL</th>
-                  <th className="border border-black w-[42px] text-center text-[10px] py-2 font-black uppercase">2XL</th>
-                  <th className="border border-black w-[42px] text-center text-[10px] py-2 font-black uppercase">3XL</th>
-                  <th className="border border-black w-[42px]"></th>
-                  <th className="border border-black w-[42px]"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {[0, 1, 2].map((rowIdx) => {
-                  const item = items[rowIdx];
-                  return (
-                    <tr key={rowIdx} style={{ height: '26mm' }}>
-                      <td className="border border-black text-center text-[22px] align-middle font-black">{rowIdx + 1}</td>
-                      <td className="border border-black px-6 align-middle text-center uppercase leading-tight overflow-hidden">
-                        {item ? (
-                          <>
-                            <div className="font-black text-[15px] mb-1">{item.productName}</div>
-                            <div className="font-bold text-[10px] text-slate-700 leading-tight italic line-clamp-2">{item.itemDescription}</div>
-                          </>
-                        ) : ''}
-                      </td>
-                      {[
-                        'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '', ''
-                      ].map((sz, i) => {
-                        const q = item?.sizes.find(s => s.size.toUpperCase() === sz)?.quantity;
-                        const qFinal = sz === 'XS' 
-                          ? item?.sizes.find(s => s.size.toUpperCase() === 'XS' || s.size === '28' || s.size === 'XS/28')?.quantity 
-                          : q;
-                        return <td key={i} className="border border-black text-center text-[28px] font-black align-middle bg-white">{qFinal || ''}</td>
-                      })}
-                      <td className="border border-black text-center text-6xl font-black bg-[#FCE4D6] align-middle">
-                        {item?.totalQuantity || ''}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Product Images Area */}
-          <div className="border border-black p-3 mb-1 flex-grow overflow-hidden bg-white" style={{ minHeight: '120px' }}>
-            <span className="text-[12px] font-black uppercase mb-3 block underline underline-offset-4 decoration-2">PRODUCT IMAGES:</span>
-            <div className="flex flex-wrap gap-12 items-center justify-start ml-4 mt-1">
-              {items.flatMap(item => item.images).slice(0, 4).map((img, i) => (
-                <div key={i} className="w-[130px] h-[110px] border border-gray-100 p-1.5 flex items-center justify-center bg-white shadow-sm overflow-hidden">
-                  <img src={img} className="max-w-full max-h-full object-contain" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Remarks Area - strictly numbered 1-4 with space for text */}
-          <div className="border border-black p-4 mb-1 overflow-hidden bg-white" style={{ height: '110px' }}>
-            <span className="text-[12px] font-black uppercase mb-3 block underline underline-offset-4 decoration-2">REMARKS:</span>
-            <div className="space-y-2 text-[14px] font-black mt-1">
-              <p>1.</p>
-              <p>2.</p>
-              <p>3.</p>
-              <p>4.</p>
-            </div>
-          </div>
-
-          {/* Footer - Full Address and legal details as per Scan */}
-          <div className="w-full text-center py-4 border-t border-black bg-white mt-auto">
-            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-black leading-none">
-              EFZEE FASHION TAILORING LLC, SHOWROOM NO.1, FASHION MART, INDUSTRIAL AREA-1, AJMAN, UAE
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* REMAINDER OF UI REMAINS CONSISTENT */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between bg-white p-5 rounded-2xl border border-slate-100 shadow-sm gap-4">
@@ -551,10 +381,18 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                 <button onClick={downloadPDF} tabIndex={-1} className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-[#EAB308] hover:text-black transition-all">
-                    <Download size={14} /> Download PDF
-                 </button>
-                 <button onClick={() => { setShowForm(false); resetForm(); }} tabIndex={-1} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                <PDFDownloadLink
+                  document={<OrderSheetPDF order={headerData as any} items={items} />}
+                  fileName={`Uniform_Studio_81_OrderSheet_${headerData.orderNumber || 'Draft'}.pdf`}
+                  className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-[#EAB308] hover:text-black transition-all"
+                >
+                  {({ blob, url, loading, error }) => (
+                    <>
+                      <Download size={14} /> {loading ? 'Loading...' : 'Download PDF'}
+                    </>
+                  )}
+                </PDFDownloadLink>
+                <button onClick={() => { setShowForm(false); resetForm(); }} tabIndex={-1} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
                   <X size={28} />
                 </button>
               </div>
@@ -577,12 +415,12 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black text-[#EAB308] uppercase tracking-widest px-1">Start Date</label>
                   <div className="relative">
-                    <input 
-                      type="date" 
-                      name="startDate" 
-                      value={headerData.startDate.split('T')[0]} 
-                      onChange={handleHeaderChange} 
-                      className="w-full p-3 bg-white border border-[#EAB308]/30 rounded-2xl font-black text-[11px] outline-none" 
+                    <input
+                      type="date"
+                      name="startDate"
+                      value={headerData.startDate.split('T')[0]}
+                      onChange={handleHeaderChange}
+                      className="w-full p-3 bg-white border border-[#EAB308]/30 rounded-2xl font-black text-[11px] outline-none"
                     />
                     {headerData.startDate.includes('T') && (
                       <div className="absolute -bottom-4 right-2 flex items-center gap-1">
@@ -594,12 +432,12 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black text-red-500 uppercase tracking-widest px-1">Deadline</label>
-                  <input 
-                    type="date" 
-                    name="deliveryDate" 
-                    value={headerData.deliveryDate} 
-                    onChange={handleHeaderChange} 
-                    className="w-full p-3 bg-white border border-red-100 rounded-2xl font-black text-[11px] text-red-600 outline-none" 
+                  <input
+                    type="date"
+                    name="deliveryDate"
+                    value={headerData.deliveryDate}
+                    onChange={handleHeaderChange}
+                    className="w-full p-3 bg-white border border-red-100 rounded-2xl font-black text-[11px] text-red-600 outline-none"
                   />
                 </div>
               </div>
@@ -648,19 +486,19 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <MultiInput 
-                      label="Embellishment" 
-                      field="embroideryPrint" 
-                      placeholder="e.g. Sublimation Print" 
+                    <MultiInput
+                      label="Embellishment"
+                      field="embroideryPrint"
+                      placeholder="e.g. Sublimation Print"
                       values={currentItem.embroideryPrint}
                       onAdd={() => addMultiItem(activeTab, 'embroideryPrint')}
                       onChange={(idx, val) => handleMultiItemChange(activeTab, 'embroideryPrint', idx, val)}
                       onRemove={(idx) => removeMultiItem(activeTab, 'embroideryPrint', idx)}
                     />
-                    <MultiInput 
-                      label="Accessories" 
-                      field="accessories" 
-                      placeholder="e.g. Rib collar, 2 buttons..." 
+                    <MultiInput
+                      label="Accessories"
+                      field="accessories"
+                      placeholder="e.g. Rib collar, 2 buttons..."
                       values={currentItem.accessories}
                       onAdd={() => addMultiItem(activeTab, 'accessories')}
                       onChange={(idx, val) => handleMultiItemChange(activeTab, 'accessories', idx, val)}
@@ -669,19 +507,19 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <MultiInput 
-                      label="Fabric" 
-                      field="fabric" 
-                      placeholder="e.g. Dry-fit Mesh" 
+                    <MultiInput
+                      label="Fabric"
+                      field="fabric"
+                      placeholder="e.g. Dry-fit Mesh"
                       values={currentItem.fabric}
                       onAdd={() => addMultiItem(activeTab, 'fabric')}
                       onChange={(idx, val) => handleMultiItemChange(activeTab, 'fabric', idx, val)}
                       onRemove={(idx) => removeMultiItem(activeTab, 'fabric', idx)}
                     />
-                    <MultiInput 
-                      label="Fabric Supplier" 
-                      field="fabricSupplier" 
-                      placeholder="e.g. Textile Hub" 
+                    <MultiInput
+                      label="Fabric Supplier"
+                      field="fabricSupplier"
+                      placeholder="e.g. Textile Hub"
                       values={currentItem.fabricSupplier}
                       onAdd={() => addMultiItem(activeTab, 'fabricSupplier')}
                       onChange={(idx, val) => handleMultiItemChange(activeTab, 'fabricSupplier', idx, val)}
@@ -690,19 +528,19 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <MultiInput 
-                      label="CM Unit" 
-                      field="cmUnit" 
-                      placeholder="e.g. crt" 
+                    <MultiInput
+                      label="CM Unit"
+                      field="cmUnit"
+                      placeholder="e.g. crt"
                       values={currentItem.cmUnit}
                       onAdd={() => addMultiItem(activeTab, 'cmUnit')}
                       onChange={(idx, val) => handleMultiItemChange(activeTab, 'cmUnit', idx, val)}
                       onRemove={(idx) => removeMultiItem(activeTab, 'cmUnit', idx)}
                     />
-                    <MultiInput 
-                      label="CM Price AED" 
-                      field="cmPrice" 
-                      placeholder="Enter Price" 
+                    <MultiInput
+                      label="CM Price AED"
+                      field="cmPrice"
+                      placeholder="Enter Price"
                       values={currentItem.cmPrice}
                       onAdd={() => addMultiItem(activeTab, 'cmPrice')}
                       onChange={(idx, val) => handleMultiItemChange(activeTab, 'cmPrice', idx, val)}
@@ -720,10 +558,10 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                       <div className="flex items-center gap-4">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Size Breakdown</label>
                         <div className="relative">
-                          <select 
-                            value={currentItem.sizeCategory} 
+                          <select
+                            value={currentItem.sizeCategory}
                             tabIndex={0}
-                            onChange={(e) => handleItemChange(activeTab, 'sizeCategory', e.target.value)} 
+                            onChange={(e) => handleItemChange(activeTab, 'sizeCategory', e.target.value)}
                             className="bg-slate-100 text-slate-800 font-black text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-lg border border-slate-200 outline-none cursor-pointer pr-8 hover:bg-slate-200 transition-colors"
                           >
                             <option value="Top">Top (XS-3XL)</option>
@@ -733,10 +571,10 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                           <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={10} />
                         </div>
                       </div>
-                      <button 
+                      <button
                         type="button"
                         tabIndex={-1}
-                        onClick={() => addSizeRow(activeTab)} 
+                        onClick={() => addSizeRow(activeTab)}
                         className="text-[9px] font-black text-[#EAB308] hover:text-white flex items-center gap-1 uppercase tracking-widest bg-yellow-50 hover:bg-[#EAB308] px-4 py-2 rounded-lg transition-all border border-[#EAB308]/20 group cursor-pointer shadow-sm active:scale-95"
                       >
                         <Plus size={12} className="group-hover:rotate-90 transition-transform" /> Add Size
@@ -746,28 +584,28 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                       {currentItem.sizes.map((s, si) => (
                         <div key={si} className="relative bg-white p-2.5 rounded-2xl border border-slate-100 flex flex-col items-center justify-center group shadow-sm transition-all hover:shadow-md h-24">
-                          <button 
+                          <button
                             type="button"
                             tabIndex={-1}
-                            onClick={() => removeSizeRow(activeTab, si)} 
+                            onClick={() => removeSizeRow(activeTab, si)}
                             className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10 cursor-pointer"
                           >
                             <X size={10} />
                           </button>
                           <div className="flex flex-col items-center justify-center w-full space-y-0.5">
-                            <input 
-                              placeholder="SIZE" 
-                              value={s.size} 
+                            <input
+                              placeholder="SIZE"
+                              value={s.size}
                               tabIndex={0}
-                              onChange={(e) => handleSizeChange(activeTab, si, 'size', e.target.value)} 
+                              onChange={(e) => handleSizeChange(activeTab, si, 'size', e.target.value)}
                               className="w-full text-center font-black text-sm text-slate-800 uppercase outline-none bg-transparent border-none placeholder:text-slate-200"
                             />
                             <div className="w-full flex justify-center">
-                              <input 
-                                type="number" 
+                              <input
+                                type="number"
                                 tabIndex={0}
-                                value={s.quantity === 0 ? '' : s.quantity} 
-                                onChange={(e) => handleSizeChange(activeTab, si, 'quantity', parseInt(e.target.value) || 0)} 
+                                value={s.quantity === 0 ? '' : s.quantity}
+                                onChange={(e) => handleSizeChange(activeTab, si, 'quantity', parseInt(e.target.value) || 0)}
                                 className="w-full text-center font-black text-lg text-[#EAB308] outline-none bg-transparent placeholder:text-slate-100 border-none focus:ring-0 leading-none"
                                 placeholder="0"
                               />
@@ -780,12 +618,12 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
 
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Detailed Description</label>
-                    <textarea 
+                    <textarea
                       rows={6}
-                      placeholder="Technical specification..." 
-                      value={currentItem.itemDescription} 
-                      onChange={(e) => handleItemChange(activeTab, 'itemDescription', e.target.value)} 
-                      className="w-full p-6 bg-white border border-slate-200 rounded-3xl font-medium text-[11px] outline-none shadow-sm resize-none focus:ring-2 focus:ring-[#EAB308]/20 transition-all leading-relaxed" 
+                      placeholder="Technical specification..."
+                      value={currentItem.itemDescription}
+                      onChange={(e) => handleItemChange(activeTab, 'itemDescription', e.target.value)}
+                      className="w-full p-6 bg-white border border-slate-200 rounded-3xl font-medium text-[11px] outline-none shadow-sm resize-none focus:ring-2 focus:ring-[#EAB308]/20 transition-all leading-relaxed"
                     />
                   </div>
 
@@ -795,10 +633,10 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
                       {currentItem.images.map((img, idx) => (
                         <div key={idx} className="relative w-32 h-32 rounded-2xl overflow-hidden shadow-lg ring-1 ring-slate-100 group/img transition-transform hover:scale-105">
                           <img src={img} className="w-full h-full object-cover" alt={`Ref ${idx}`} />
-                          <button 
+                          <button
                             type="button"
                             tabIndex={-1}
-                            onClick={() => removeImage(activeTab, idx)} 
+                            onClick={() => removeImage(activeTab, idx)}
                             className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity shadow-lg cursor-pointer"
                           >
                             <X size={12} />
@@ -854,7 +692,7 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
               <h4 className="font-black text-slate-800 text-sm truncate mb-1">{base.clientName}</h4>
               <p className="text-[11px] text-slate-400 font-bold truncate">{productList || 'Items Registry'}</p>
               <div className="mt-6 flex items-center justify-between">
-                 <span className="text-[10px] font-black bg-slate-900 text-[#EAB308] px-3 py-1 rounded-xl shadow-sm">Sheet Qty: {totalQty}</span>
+                <span className="text-[10px] font-black bg-slate-900 text-[#EAB308] px-3 py-1 rounded-xl shadow-sm">Sheet Qty: {totalQty}</span>
               </div>
             </div>
           );
