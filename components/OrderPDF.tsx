@@ -1,268 +1,290 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, Font, Link } from '@react-pdf/renderer';
 import { Order } from '../types';
 
-// Register fonts if needed, otherwise use standard fonts
+// Register fonts if needed
 // Font.register({ family: 'Roboto', src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-light-webfont.ttf' });
 
 const styles = StyleSheet.create({
     page: {
-        padding: 30, // Default padding
+        padding: 20,
         fontFamily: 'Helvetica',
-        fontSize: 9, // Slightly larger base font
+        fontSize: 9,
         flexDirection: 'column',
         backgroundColor: '#FFFFFF',
     },
-    // Header
+
+    // Header Section
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 5,
-        borderBottomWidth: 1,
-        borderBottomColor: '#000',
-        paddingBottom: 5,
+        alignItems: 'flex-start',
+        marginBottom: 3,
     },
-    logoContainer: {
+    logoSection: {
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+    },
+    logoImage: {
+        width: 155,
+        height: 55,
+        objectFit: 'contain',
+    },
+    // Line Container
+    headerLineContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        width: '100%',
+        marginTop: 2,
+        marginBottom: 6,
     },
-    logoBox: {
-        backgroundColor: '#EAB308', // Yellow
-        padding: 4,
-        marginRight: 8,
+    headerLineYellow: {
+        height: 2.5,
+        backgroundColor: '#EAB308',
+        width: 140,
     },
-    logoText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        fontStyle: 'italic',
-        color: '#000',
+    headerLineGrey: {
+        height: 0.5,
+        backgroundColor: '#9CA3AF',
+        flex: 1,
     },
-    brandName: {
+
+    // Contact Info (Right side)
+    contactContainer: {
         flexDirection: 'column',
-    },
-    brandText: {
-        fontSize: 16,
-        fontWeight: 'bold', // Helvetica-Bold equivalent
-        marginBottom: -2,
-    },
-    contactInfo: {
         alignItems: 'flex-end',
+        justifyContent: 'center',
+        marginTop: 8,
+    },
+    contactRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
     },
     contactText: {
         fontSize: 8,
-        marginBottom: 2,
         fontWeight: 'bold',
+        marginRight: 6,
     },
-    // Title
-    titleBar: {
-        backgroundColor: '#E2E8F0', // Light gray
-        borderWidth: 1,
-        borderColor: '#000',
-        padding: 3,
-        marginBottom: 5,
-        textAlign: 'center',
-    },
-    titleText: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        letterSpacing: 2,
-        textTransform: 'uppercase',
-    },
-    // Metadata Grid
-    metaTable: {
-        display: 'flex',
-        width: 'auto',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        borderRightWidth: 0,
-        borderBottomWidth: 0,
-        marginBottom: 5,
-    },
-    metaRow: {
-        margin: 'auto',
-        flexDirection: 'row',
-    },
-    metaLabelCell: {
-        width: '18%',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0,
-        backgroundColor: '#FFFFFF',
-        padding: 3,
-    },
-    metaValueCell: {
-        width: '32%',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0,
-        padding: 3,
-        fontWeight: 'bold',
-    },
-    labelText: {
-        fontSize: 8,
-        textTransform: 'uppercase',
-        fontWeight: 'bold',
-    },
-    valueText: {
-        fontSize: 9,
-        textTransform: 'uppercase',
-    },
-    // Main Table
-    mainTable: {
-        display: 'flex',
-        width: 'auto',
-        borderStyle: 'solid',
-        borderWidth: 1, // Outer border
-        borderRightWidth: 0,
-        borderBottomWidth: 1,
-        marginBottom: 5,
-    },
-    tableHeader: {
-        backgroundColor: '#E2E8F0',
-        flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderColor: '#000',
-    },
-    // Column Widths
-    colSN: { width: '5%', borderRightWidth: 1, borderColor: '#000', height: 60, justifyContent: 'center', alignItems: 'center' },
-    colDesc: { width: '40%', borderRightWidth: 1, borderColor: '#000', height: 60, justifyContent: 'center', alignItems: 'center' },
-    colSizes: { width: '45%', flexDirection: 'column', height: 60 }, // Contains sub-columns
-    colTotal: { width: '10%', borderRightWidth: 1, borderColor: '#000', height: 60, justifyContent: 'center', alignItems: 'center' },
-
-    // Size Header Sub-rows
-    sizeHeaderTop: {
-        height: 30,
-        borderBottomWidth: 1,
-        borderRightWidth: 1,
-        borderColor: '#000',
+    contactIconCircle: {
+        width: 13,
+        height: 13,
+        borderRadius: 6.5,
+        backgroundColor: '#EAB308',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#E2E8F0',
+    },
+    contactIconSymbol: {
+        color: '#FFFFFF',
+        fontSize: 7,
+        fontWeight: 'bold',
+    },
+
+    // --- MAIN CONTENT ---
+    mainBorder: {
+        borderWidth: 1,
+        borderColor: '#000000',
+        flex: 1,
+    },
+
+    // Title Bar
+    titleBar: {
+        backgroundColor: '#D1D5DB',
+        borderBottomWidth: 1,
+        borderBottomColor: '#000000',
+        paddingVertical: 4,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    titleText: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
+        letterSpacing: 1,
+        textTransform: 'uppercase',
+    },
+
+    // Metadata Grid — 14% + 22% + flex(spacer) + 14% + 22% = balanced
+    metaRow: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderBottomColor: '#000000',
+        minHeight: 18,
+    },
+    metaLabel: {
+        width: '14%',
+        borderRightWidth: 1,
+        borderRightColor: '#000000',
+        padding: 3,
+        justifyContent: 'center',
+        backgroundColor: '#F3F4F6',
+    },
+    metaLabelText: {
+        fontSize: 7,
+        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
+    },
+    metaValue: {
+        width: '22%',
+        borderRightWidth: 1,
+        borderRightColor: '#000000',
+        padding: 3,
+        justifyContent: 'center',
+        backgroundColor: '#FFFFFF',
+    },
+    metaValueText: {
+        fontSize: 8,
+    },
+    metaSpacer: {
+        flex: 1,
+        borderRightWidth: 1,
+        borderRightColor: '#000000',
+        backgroundColor: '#FFFFFF',
+    },
+
+    // Items Table Header
+    tableHeader: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderBottomColor: '#000000',
+        backgroundColor: '#D1D5DB',
+        height: 36,
+    },
+    colSN: { width: '5%', borderRightWidth: 1, borderRightColor: '#000000', justifyContent: 'center', alignItems: 'center' },
+    colDesc: { width: '25%', borderRightWidth: 1, borderRightColor: '#000000', justifyContent: 'center', alignItems: 'center' },
+    colSizes: { width: '60%', flexDirection: 'column', height: '100%' },
+    colTotal: { width: '10%', justifyContent: 'center', alignItems: 'center' },
+
+    headerText: {
+        fontSize: 7,
+        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
+        textAlign: 'center',
+    },
+
+    // Size Sub-headers
+    sizeHeaderTop: {
+        height: '50%',
+        borderBottomWidth: 1,
+        borderBottomColor: '#000000',
+        justifyContent: 'center',
+        alignItems: 'center',
         width: '100%',
     },
     sizeHeaderBottom: {
-        height: 30,
+        height: '50%',
         flexDirection: 'row',
-        backgroundColor: '#F8FAFC',
         width: '100%',
     },
     sizeCellHeader: {
         flex: 1,
         borderRightWidth: 1,
-        borderColor: '#000',
+        borderRightColor: '#000000',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100%',
-    },
-    lastSizeCellHeader: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%',
-        borderRightWidth: 1,
-        borderColor: '#000',
     },
 
-    // Table Row
+    // Table Rows — reduced height so 5 rows + sections fit on page
     tableRow: {
         flexDirection: 'row',
-        height: 90, // Increased row height
         borderBottomWidth: 1,
-        borderColor: '#000',
+        borderBottomColor: '#000000',
+        minHeight: 50,
     },
-    cellSN: { width: '5%', borderRightWidth: 1, borderColor: '#000', justifyContent: 'center', alignItems: 'center', fontSize: 16, fontWeight: 'bold' },
-    cellDesc: { width: '40%', borderRightWidth: 1, borderColor: '#000', padding: 4, justifyContent: 'center' },
-    cellSizes: { width: '45%', flexDirection: 'row' },
-    cellSizeValue: { flex: 1, borderRightWidth: 1, borderColor: '#000', justifyContent: 'center', alignItems: 'center', fontSize: 14, fontWeight: 'bold' },
-    cellTotal: { width: '10%', borderRightWidth: 1, borderColor: '#000', backgroundColor: '#FCE4D6', justifyContent: 'center', alignItems: 'center', fontSize: 18, fontWeight: 'bold' },
+    cellText: {
+        fontSize: 8,
+    },
+    cellSN: { width: '5%', borderRightWidth: 1, borderRightColor: '#000000', justifyContent: 'center', alignItems: 'center' },
+    cellDesc: { width: '25%', borderRightWidth: 1, borderRightColor: '#000000', padding: 4, justifyContent: 'center' },
+    cellSizes: { width: '60%', flexDirection: 'row' },
+    cellSizeValue: {
+        flex: 1,
+        borderRightWidth: 1,
+        borderRightColor: '#000000',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    cellTotal: {
+        width: '10%',
+        backgroundColor: '#D1D5DB',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
 
-    // Images Section
+    // Image/Remark Sections
     imagesSection: {
-        borderWidth: 1,
-        borderColor: '#000',
-        height: 120, // Taller image section
-        marginBottom: 5,
+        borderBottomWidth: 1,
+        borderBottomColor: '#000000',
         padding: 5,
+        height: 90,
+    },
+    remarksSection: {
+        padding: 5,
+        height: 60,
     },
     sectionLabel: {
-        fontSize: 9,
+        fontSize: 7,
         fontWeight: 'bold',
         textDecoration: 'underline',
-        marginBottom: 5,
+        marginBottom: 4,
     },
     imageRow: {
         flexDirection: 'row',
-        gap: 15,
-        marginTop: 5,
+        gap: 8,
     },
     productImage: {
-        width: 80,
-        height: 80,
+        width: 65,
+        height: 65,
         borderWidth: 1,
         borderColor: '#eee',
         objectFit: 'contain',
     },
-
-    // Remarks Section
-    remarksSection: {
-        borderWidth: 1,
-        borderColor: '#000',
-        height: 70,
-        marginBottom: 5,
-        padding: 5,
-    },
     remarkLine: {
-        fontSize: 9,
-        marginBottom: 4,
+        fontSize: 7,
+        marginBottom: 3,
     },
 
     // Footer
     footer: {
-        marginTop: 'auto', // Push to bottom
+        marginTop: 4,
         borderTopWidth: 1,
         borderColor: '#000',
-        paddingTop: 8,
+        paddingTop: 4,
         alignItems: 'center',
+        width: '100%',
     },
     footerText: {
-        fontSize: 8,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        textTransform: 'uppercase',
+        fontSize: 7,
+        color: '#000',
     }
 });
 
 interface OrderPDFProps {
     order: Order;
-    items: any[]; // Using list of items for the grid
+    items: any[];
 }
 
-// Helper to format date
 const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
     try {
         const d = new Date(dateStr);
-        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(/ /g, '-');
     } catch {
         return dateStr;
     }
 };
 
 const OrderSheetPDF = ({ order, items }: OrderPDFProps) => {
-    // We need to fill at least 3 rows
+    // Fill to ensuring visual "page" feel.
     const displayItems = [...items];
-    while (displayItems.length < 3) {
-        displayItems.push(null); // Placeholder for empty rows
+    while (displayItems.length < 3) { // Minimum 3 rows
+        displayItems.push(null);
     }
 
-    // Use the first item for common fields if order doesn't have them explicitly
     const commonData = items[0] || {};
     const dateStr = formatDate(new Date().toISOString());
 
-    // Helper to safely get nested array values
     const getCommonValue = (field: string) => {
         const val = commonData[field];
         if (Array.isArray(val)) return val[0] || '';
@@ -273,158 +295,168 @@ const OrderSheetPDF = ({ order, items }: OrderPDFProps) => {
         <Document>
             <Page size="A4" orientation="landscape" style={styles.page}>
 
-                {/* Header */}
+                {/* Header Container */}
                 <View style={styles.headerContainer}>
-                    <View style={styles.logoContainer}>
-                        <View style={styles.logoBox}>
-                            <Text style={[styles.logoText, { color: '#000' }]}>US</Text>
-                        </View>
-                        <View style={styles.brandName}>
-                            <Text style={styles.brandText}>UNIFORM</Text>
-                            <Text style={styles.brandText}>STUDIO 81</Text>
-                        </View>
+                    {/* Left: Logo */}
+                    <View style={styles.logoSection}>
+                        <Image style={styles.logoImage} src={`${window.location.origin}/us81-logo.png`} />
                     </View>
-                    <View style={styles.contactInfo}>
-                        <Text style={styles.contactText}>+971 67411456</Text>
-                        <Text style={styles.contactText}>www.efzeefashion.com</Text>
+
+                    {/* Right: Contact */}
+                    <View style={styles.contactContainer}>
+                        <View style={styles.contactRow}>
+                            <Text style={styles.contactText}>+971 67411456</Text>
+                            <View style={styles.contactIconCircle}>
+                                <Text style={styles.contactIconSymbol}>P</Text>
+                            </View>
+                        </View>
+                        <View style={styles.contactRow}>
+                            <Link src="http://www.efzeefashion.com" style={[styles.contactText, { textDecoration: 'none', color: '#000' }]}>www.efzeefashion.com</Link>
+                            <View style={styles.contactIconCircle}>
+                                <Text style={styles.contactIconSymbol}>W</Text>
+                            </View>
+                        </View>
                     </View>
                 </View>
 
-                {/* Title */}
-                <View style={styles.titleBar}>
-                    <Text style={styles.titleText}>ORDER SHEET</Text>
+                {/* Header Line (Yellow + Grey) */}
+                <View style={styles.headerLineContainer}>
+                    <View style={styles.headerLineYellow} />
+                    <View style={styles.headerLineGrey} />
                 </View>
 
-                {/* Metadata Grid */}
-                <View style={styles.metaTable}>
+                {/* Main Content Border Wrapper */}
+                <View style={styles.mainBorder}>
+
+                    {/* Title */}
+                    <View style={styles.titleBar}>
+                        <Text style={styles.titleText}>ORDER SHEET</Text>
+                    </View>
+
+                    {/* Metadata */}
                     {/* Row 1 */}
                     <View style={styles.metaRow}>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>ORDER SHEET NO</Text></View>
-                        <View style={styles.metaValueCell}><Text style={styles.valueText}>{order.orderNumber}</Text></View>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>START DATE</Text></View>
-                        <View style={styles.metaValueCell}><Text style={styles.valueText}>{formatDate(order.startDate as any)}</Text></View>
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>ORDER SHEET NO</Text></View>
+                        <View style={styles.metaValue}><Text style={styles.metaValueText}>{order.orderNumber}</Text></View>
+                        <View style={styles.metaSpacer} />
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>START DATE</Text></View>
+                        <View style={[styles.metaValue, { borderRightWidth: 0 }]}><Text style={styles.metaValueText}>{formatDate(order.startDate!)}</Text></View>
                     </View>
                     {/* Row 2 */}
                     <View style={styles.metaRow}>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>ORDER DATE</Text></View>
-                        <View style={styles.metaValueCell}><Text style={styles.valueText}>{dateStr}</Text></View>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>DELIVERY DATE</Text></View>
-                        <View style={[styles.metaValueCell]}><Text style={[styles.valueText, { color: 'red' }]}>{formatDate(order.deliveryDate as any)}</Text></View>
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>ORDER DATE</Text></View>
+                        <View style={styles.metaValue}><Text style={styles.metaValueText}>{dateStr}</Text></View>
+                        <View style={styles.metaSpacer} />
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>DELIVERY DATE</Text></View>
+                        <View style={[styles.metaValue, { borderRightWidth: 0 }]}><Text style={[styles.metaValueText, { color: 'red' }]}>{formatDate(order.deliveryDate!)}</Text></View>
                     </View>
                     {/* Row 3 */}
                     <View style={styles.metaRow}>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>BRAND</Text></View>
-                        <View style={styles.metaValueCell}><Text style={styles.valueText}>{order.clientName}</Text></View>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>FABRIC</Text></View>
-                        <View style={styles.metaValueCell}><Text style={styles.valueText}>{getCommonValue('fabric')}</Text></View>
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>BRAND</Text></View>
+                        <View style={styles.metaValue}><Text style={styles.metaValueText}>{order.clientName}</Text></View>
+                        <View style={styles.metaSpacer} />
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>FABRIC</Text></View>
+                        <View style={[styles.metaValue, { borderRightWidth: 0 }]}><Text style={styles.metaValueText}>{getCommonValue('fabric')}</Text></View>
                     </View>
                     {/* Row 4 */}
                     <View style={styles.metaRow}>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>CM UNIT</Text></View>
-                        <View style={styles.metaValueCell}><Text style={styles.valueText}>{getCommonValue('cmUnit')}</Text></View>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>FABRIC SUPPLIER</Text></View>
-                        <View style={styles.metaValueCell}><Text style={styles.valueText}>{getCommonValue('fabricSupplier')}</Text></View>
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>CM UNIT</Text></View>
+                        <View style={styles.metaValue}><Text style={styles.metaValueText}>{getCommonValue('cmUnit')}</Text></View>
+                        <View style={styles.metaSpacer} />
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>FABRIC SUPPLIER</Text></View>
+                        <View style={[styles.metaValue, { borderRightWidth: 0 }]}><Text style={styles.metaValueText}>{getCommonValue('fabricSupplier')}</Text></View>
                     </View>
                     {/* Row 5 */}
                     <View style={styles.metaRow}>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>CM PRICE</Text></View>
-                        <View style={styles.metaValueCell}><Text style={styles.valueText}>{getCommonValue('cmPrice')}</Text></View>
-                        <View style={styles.metaLabelCell}><Text style={styles.labelText}>PATTERN FOLLOWED</Text></View>
-                        <View style={styles.metaValueCell}><Text style={styles.valueText}>{commonData.patternFollowed || ''}</Text></View>
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>CM PRICE</Text></View>
+                        <View style={styles.metaValue}><Text style={styles.metaValueText}>{getCommonValue('cmPrice')}</Text></View>
+                        <View style={styles.metaSpacer} />
+                        <View style={styles.metaLabel}><Text style={styles.metaLabelText}>PATTERN FOLLOWED</Text></View>
+                        <View style={[styles.metaValue, { borderRightWidth: 0 }]}><Text style={styles.metaValueText}>{commonData.patternFollowed || ''}</Text></View>
                     </View>
-                </View>
 
-                {/* Main Production Table */}
-                <View style={styles.mainTable}>
-                    {/* Header */}
+                    {/* Table Header */}
                     <View style={styles.tableHeader}>
-                        <View style={styles.colSN}><Text style={styles.labelText}>S/N</Text></View>
-                        <View style={styles.colDesc}><Text style={styles.labelText}>ITEM DESCRIPTION</Text></View>
-
+                        <View style={styles.colSN}><Text style={styles.headerText}>S/N</Text></View>
+                        <View style={styles.colDesc}><Text style={styles.headerText}>ITEM DESCRIPTION</Text></View>
                         <View style={styles.colSizes}>
-                            <View style={styles.sizeHeaderTop}>
-                                <Text style={styles.labelText}>SIZE-WISE QUANTITY</Text>
-                            </View>
+                            <View style={styles.sizeHeaderTop}><Text style={styles.headerText}>SIZE-WISE QUANTITY</Text></View>
                             <View style={styles.sizeHeaderBottom}>
-                                {['XS/28', 'S', 'M', 'L', 'XL', '2XL', '3XL', '', ''].map((s, i) => (
-                                    <View key={i} style={i === 8 ? styles.lastSizeCellHeader : styles.sizeCellHeader}>
-                                        <Text style={{ fontSize: 7, fontWeight: 'bold' }}>{s}</Text>
+                                {['XS/28', 'S', 'M', 'L', 'XL', '2XL', '3XL', ''].map((s, i, arr) => (
+                                    <View key={i} style={[styles.sizeCellHeader, i === arr.length - 1 ? { borderRightWidth: 0 } : {}]}>
+                                        <Text style={{ fontSize: 8, fontWeight: 'bold' }}>{s}</Text>
                                     </View>
                                 ))}
                             </View>
                         </View>
-
-                        <View style={styles.colTotal}><Text style={styles.labelText}>TOTAL</Text></View>
+                        <View style={styles.colTotal}><Text style={styles.headerText}>TOTAL</Text></View>
                     </View>
 
-                    {/* Rows */}
-                    {displayItems.map((item, index) => {
-                        return (
-                            <View key={index} style={styles.tableRow}>
-                                <View style={styles.cellSN}><Text>{index + 1}</Text></View>
-                                <View style={styles.cellDesc}>
-                                    {item && (
-                                        <View style={{ flexDirection: 'column', padding: 2 }}>
-                                            <Text style={{ fontSize: 10, fontWeight: 'bold', marginBottom: 2 }}>{item.productName}</Text>
-                                            <Text style={{ fontSize: 8, fontStyle: 'italic', color: '#444' }}>{item.itemDescription}</Text>
-                                        </View>
-                                    )}
-                                </View>
-
-                                <View style={styles.cellSizes}>
-                                    {['XS/28', 'S', 'M', 'L', 'XL', '2XL', '3XL', '', ''].map((sz, i) => {
+                    {/* Table Rows */}
+                    {displayItems.map((item, index) => (
+                        <View key={index} style={styles.tableRow}>
+                            <View style={styles.cellSN}><Text style={[styles.cellText, { fontWeight: 'bold' }]}>{index + 1}</Text></View>
+                            <View style={styles.cellDesc}>
+                                {item && (
+                                    <>
+                                        <Text style={[styles.cellText, { fontWeight: 'bold', fontSize: 10 }]}>{item.productName}</Text>
+                                        <Text style={[styles.cellText, { fontSize: 8 }]}>{item.itemDescription}</Text>
+                                    </>
+                                )}
+                            </View>
+                            <View style={styles.cellSizes}>
+                                <View style={{ flexDirection: 'row', height: '100%' }}>
+                                    {['XS/28', 'S', 'M', 'L', 'XL', '2XL', '3XL', ''].map((sz, i, arr) => {
                                         let qty = '';
                                         if (item && item.sizes) {
-                                            // Find matching size
                                             const size = item.sizes.find((s: any) => {
                                                 const sName = s.size.toUpperCase();
                                                 if (sz === 'XS/28') return sName === 'XS' || sName === '28' || sName === 'XS/28';
                                                 return sName === sz;
                                             });
-                                            if (size && size.quantity > 0) qty = size.quantity;
+                                            if (size && size.quantity > 0) qty = size.quantity.toString();
                                         }
-
                                         return (
-                                            <View key={i} style={[styles.cellSizeValue, i === 8 ? { borderRightWidth: 1 } : {}]}>
-                                                <Text>{qty}</Text>
+                                            <View key={i} style={[styles.cellSizeValue, i === arr.length - 1 ? { borderRightWidth: 0 } : {}]}>
+                                                <Text style={styles.cellText}>{qty}</Text>
                                             </View>
                                         );
                                     })}
                                 </View>
-
-                                <View style={styles.cellTotal}>
-                                    <Text>{item?.totalQuantity || ''}</Text>
-                                </View>
                             </View>
-                        );
-                    })}
-                </View>
+                            <View style={styles.cellTotal}>
+                                <Text style={[styles.cellText, { fontWeight: 'bold' }]}>{item?.totalQuantity || ''}</Text>
+                            </View>
+                        </View>
+                    ))}
 
-                {/* Images Section */}
-                <View style={styles.imagesSection}>
-                    <Text style={styles.sectionLabel}>PRODUCT IMAGES:</Text>
-                    <View style={styles.imageRow}>
-                        {/* Flatten images from all items and take first 4 */}
-                        {items.flatMap(item => item?.images || []).filter(Boolean).slice(0, 4).map((img, i) => (
-                            // eslint-disable-next-line jsx-a11y/alt-text
-                            <Image key={i} src={img} style={styles.productImage} />
-                        ))}
+                    {/* Images Section */}
+                    <View style={styles.imagesSection}>
+                        <Text style={styles.sectionLabel}>PRODUCT IMAGES:</Text>
+                        <View style={styles.imageRow}>
+                            {items.flatMap(item => item?.images || []).filter(Boolean).slice(0, 4).map((img, i) => (
+                                // eslint-disable-next-line jsx-a11y/alt-text
+                                <Image key={i} src={img} style={styles.productImage} />
+                            ))}
+                        </View>
                     </View>
+
+                    {/* Remarks Section */}
+                    <View style={styles.remarksSection}>
+                        <Text style={styles.sectionLabel}>REMARKS:</Text>
+                        <Text style={styles.remarkLine}>1.</Text>
+                        <Text style={styles.remarkLine}>2.</Text>
+                        <Text style={styles.remarkLine}>3.</Text>
+                        <Text style={styles.remarkLine}>4.</Text>
+                    </View>
+
                 </View>
 
-                {/* Remarks Section */}
-                <View style={styles.remarksSection}>
-                    <Text style={styles.sectionLabel}>REMARKS:</Text>
-                    <Text style={styles.remarkLine}>1.</Text>
-                    <Text style={styles.remarkLine}>2.</Text>
-                    <Text style={styles.remarkLine}>3.</Text>
-                    <Text style={styles.remarkLine}>4.</Text>
-                </View>
-
-                {/* Footer */}
+                {/* Footer (Outside Grid) */}
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>EFZEE FASHION TAILORING LLC, SHOWROOM NO.1, FASHION MART, INDUSTRIAL AREA-1, AJMAN, UAE</Text>
                 </View>
+
             </Page>
         </Document>
     );

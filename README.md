@@ -18,6 +18,7 @@
 - **👥 Multi-Role Support** - Role-based access for Sales, Production, and Admin users
 - **🔍 Advanced Search** - Quick order lookup by batch number, client, or product
 - **💾 Auto-Save** - Persistent data storage using localStorage
+- **📄 PDF Export** - Generate branded A4 landscape Order Sheets with logo, metadata, size table, product images, and remarks
 
 ---
 
@@ -132,6 +133,7 @@ To create a demo account for testing, register with these details:
 - **TypeScript** - Type-safe development
 - **Vite** - Fast build tool and dev server
 - **Lucide React** - Beautiful icon library
+- **@react-pdf/renderer** - PDF generation for Order Sheets
 - **LocalStorage** - Client-side data persistence
 
 ---
@@ -160,7 +162,10 @@ uniform-studio-81---order-management-system/
 │   ├── SalesView.tsx        # Sales order management
 │   ├── ProductionView.tsx   # Production tracking
 │   ├── DeliveryView.tsx     # Quality control & delivery
-│   └── Login.tsx            # Authentication
+│   ├── Login.tsx            # Authentication
+│   └── OrderPDF.tsx         # PDF Order Sheet generator
+├── public/
+│   └── us81-logo.png        # Brand logo used in PDF export
 ├── App.tsx                  # Main application component
 ├── types.ts                 # TypeScript type definitions
 ├── index.tsx                # Application entry point
@@ -290,5 +295,5 @@ This project is part of the Uniform Studio 81 operations system.
 
 Built with ❤️ for streamlining uniform manufacturing operations.
 
-**Version:** 2.1 Build  
+**Version:** 2.2 Build  
 **Last Updated:** February 2026
