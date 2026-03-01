@@ -382,9 +382,9 @@ const OrderSheetPDF = ({ order, items }: OrderPDFProps) => {
                         <View style={styles.colSizes}>
                             <View style={styles.sizeHeaderTop}><Text style={styles.headerText}>SIZE-WISE QUANTITY</Text></View>
                             <View style={styles.sizeHeaderBottom}>
-                                {['XS/28', 'S', 'M', 'L', 'XL', '2XL', '3XL', ''].map((s, i, arr) => (
-                                    <View key={i} style={[styles.sizeCellHeader, i === arr.length - 1 ? { borderRightWidth: 0 } : {}]}>
-                                        <Text style={{ fontSize: 8, fontWeight: 'bold' }}>{s}</Text>
+                                {['XS/28', 'S/30', 'M/32', 'L/34', 'XL/36', '2XL/38', '3XL/40', '42', '', ''].map((s, i) => (
+                                    <View key={i} style={styles.sizeCellHeader}>
+                                        <Text style={{ fontSize: 7, fontWeight: 'bold' }}>{s}</Text>
                                     </View>
                                 ))}
                             </View>
@@ -405,24 +405,31 @@ const OrderSheetPDF = ({ order, items }: OrderPDFProps) => {
                                 )}
                             </View>
                             <View style={styles.cellSizes}>
-                                <View style={{ flexDirection: 'row', height: '100%' }}>
-                                    {['XS/28', 'S', 'M', 'L', 'XL', '2XL', '3XL', ''].map((sz, i, arr) => {
-                                        let qty = '';
-                                        if (item && item.sizes) {
-                                            const size = item.sizes.find((s: any) => {
-                                                const sName = s.size.toUpperCase();
-                                                if (sz === 'XS/28') return sName === 'XS' || sName === '28' || sName === 'XS/28';
-                                                return sName === sz;
-                                            });
-                                            if (size && size.quantity > 0) qty = size.quantity.toString();
-                                        }
-                                        return (
-                                            <View key={i} style={[styles.cellSizeValue, i === arr.length - 1 ? { borderRightWidth: 0 } : {}]}>
-                                                <Text style={styles.cellText}>{qty}</Text>
-                                            </View>
+                                {[
+                                    { label: 'XS/28', keys: ['XS', '28', 'XS/28'] },
+                                    { label: 'S/30', keys: ['S', '30', 'S/30'] },
+                                    { label: 'M/32', keys: ['M', '32', 'M/32'] },
+                                    { label: 'L/34', keys: ['L', '34', 'L/34'] },
+                                    { label: 'XL/36', keys: ['XL', '36', 'XL/36'] },
+                                    { label: '2XL/38', keys: ['2XL', '38', '2XL/38'] },
+                                    { label: '3XL/40', keys: ['3XL', '40', '3XL/40'] },
+                                    { label: '42', keys: ['4XL', '42', '4XL/42'] },
+                                    { label: '', keys: [] },
+                                    { label: '', keys: [] },
+                                ].map(({ label, keys }, i) => {
+                                    let qty = '';
+                                    if (item && item.sizes && keys.length > 0) {
+                                        const size = item.sizes.find((s: any) =>
+                                            keys.includes(s.size.toUpperCase())
                                         );
-                                    })}
-                                </View>
+                                        if (size && size.quantity > 0) qty = size.quantity.toString();
+                                    }
+                                    return (
+                                        <View key={i} style={styles.cellSizeValue}>
+                                            <Text style={styles.cellText}>{qty}</Text>
+                                        </View>
+                                    );
+                                })}
                             </View>
                             <View style={styles.cellTotal}>
                                 <Text style={[styles.cellText, { fontWeight: 'bold' }]}>{item?.totalQuantity || ''}</Text>
