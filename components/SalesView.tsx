@@ -3,6 +3,7 @@ import { Plus, X, Search, Edit2, Printer, ChevronDown, Download, Phone, Send, Sa
 import { Order, OrderType, SizeQuantity, User } from '../types';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import OrderSheetPDF from './OrderPDF';
+import { api } from '../lib/api';
 
 interface Props {
   orders: Order[];
@@ -82,6 +83,7 @@ const MultiInput = ({ label, field, placeholder, values, onAdd, onChange, onRemo
 
 const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, currentUser }) => {
   const [showForm, setShowForm] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [registrySearch, setRegistrySearch] = useState('');
   const [editingOrderNumber, setEditingOrderNumber] = useState<string | null>(null);
@@ -294,30 +296,47 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
       alert("Validation Error: Please add at least one item.");
       return;
     }
-    const startTimestamp = headerData.startDate || new Date().toISOString();
-    const deadlineTimestamp = headerData.deliveryDate ? `${headerData.deliveryDate}T00:00:00` : new Date().toISOString();
 
-    const finalOrders: Order[] = validItems.map(item => ({
-      ...headerData,
-      ...item,
-      cmPrice: item.cmPrice.map(p => parseFloat(p) || 0),
-      startDate: startTimestamp,
-      deliveryDate: deadlineTimestamp,
-      id: item.id.length > 10 ? item.id : Math.random().toString(36).substr(2, 9),
-      salesPerson: currentUser.name,
-      date: new Date().toISOString(),
-      status: 'Order Received' as any,
-      cmPartner: 'In-House Line',
-    }));
+    setIsSaving(true);
+    
+    try {
+      const startTimestamp = headerData.startDate || new Date().toISOString();
+      const deadlineTimestamp = headerData.deliveryDate ? `${headerData.deliveryDate}T00:00:00` : new Date().toISOString();
 
-    if (editingOrderNumber) {
-      finalOrders.forEach(o => onUpdateOrder(o));
-    } else {
-      finalOrders.forEach(o => onAddOrder(o));
+      const finalOrders: Order[] = validItems.map(item => ({
+        ...headerData,
+        ...item,
+        cmPrice: item.cmPrice.map(p => parseFloat(p) || 0),
+        startDate: startTimestamp,
+        deliveryDate: deadlineTimestamp,
+        id: item.id.length > 10 ? item.id : Math.random().toString(36).substr(2, 9),
+        salesPerson: currentUser.name,
+        date: new Date().toISOString(),
+        status: 'Order Received' as any,
+        cmPartner: 'In-House Line',
+      }));
+
+      for (const order of finalOrders) {
+        const isNewItem = order.id.length < 15;
+        
+        if (isNewItem) {
+          const { id, ...orderWithoutId } = order;
+          const created = await api.createOrder(orderWithoutId as any);
+          onAddOrder(created);
+        } else {
+          const updated = await api.updateOrder(order.id, order);
+          onUpdateOrder(updated);
+        }
+      }
+
+      setShowForm(false);
+      resetForm();
+    } catch (error) {
+      console.error("Failed to save sheet", error);
+      alert("Failed to save orders. The payloads may be too large. Try uploading smaller reference images.");
+    } finally {
+      setIsSaving(false);
     }
-
-    setShowForm(false);
-    resetForm();
   };
 
   const orderGroups = orders.reduce((groups, order) => {
@@ -663,9 +682,13 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
             <div className="p-8 bg-slate-50/80 border-t border-slate-100 flex flex-col md:flex-row justify-end items-center gap-6">
               <div className="flex items-center gap-10">
                 <button onClick={() => { setShowForm(false); resetForm(); }} tabIndex={-1} className="text-[11px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest transition-colors">Discard</button>
-                <button onClick={finalizeSheet} tabIndex={-1} className="bg-[#1E293B] text-[#EAB308] px-14 py-5 rounded-[1.5rem] font-black flex items-center gap-3 shadow-[0_15px_40px_rgba(30,41,59,0.3)] hover:scale-[1.02] active:scale-95 transition-all group border-b-4 border-black">
-                  <Save size={22} className="group-hover:scale-110 transition-transform" />
-                  <span className="text-sm uppercase tracking-wider">Save Order</span>
+                <button disabled={isSaving} onClick={finalizeSheet} tabIndex={-1} className={`bg-[#1E293B] text-[#EAB308] px-14 py-5 rounded-[1.5rem] font-black flex items-center gap-3 shadow-[0_15px_40px_rgba(30,41,59,0.3)] transition-all group border-b-4 border-black ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-95'}`}>
+                  {isSaving ? (
+                    <div className="w-5 h-5 rounded-full border-2 border-[#EAB308] border-t-transparent animate-spin" />
+                  ) : (
+                    <Save size={22} className="group-hover:scale-110 transition-transform" />
+                  )}
+                  <span className="text-sm uppercase tracking-wider">{isSaving ? 'Saving...' : 'Save Order'}</span>
                 </button>
               </div>
             </div>

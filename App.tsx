@@ -29,6 +29,7 @@ import SalesView from './components/SalesView';
 import ProductionView from './components/ProductionView';
 import DeliveryView from './components/DeliveryView';
 import Login from './components/Login';
+import { api } from './lib/api';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<ViewType>('Dashboard');
@@ -48,50 +49,25 @@ const App: React.FC = () => {
   const [profileFormData, setProfileFormData] = useState<Partial<User>>({});
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('us81_user');
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setCurrentUser(parsedUser);
-      setProfileFormData(parsedUser);
-    }
-
-    const savedOrders = localStorage.getItem('us81_orders');
-    if (savedOrders) {
-      setOrders(JSON.parse(savedOrders));
-    } else {
-      const mock: Order[] = [{
-        id: '1', orderNumber: 'OS-2025290', type: 'Final Production', date: '2025-01-15',
-        startDate: '2025-01-16T09:00', deliveryDate: '2025-02-15T17:00', clientName: 'Al Gurg Group',
-        brand: 'CUROSCAPE - ELV', productName: 'SPORTS JERSEY', itemDescription: 'SPORTS JERSY SUBLIMATION POLO',
-        fabric: ['Dry-fit Mesh'], color: 'Teal Blue', sleeve: 'Short Sleeve', fabricSupplier: ['Textile Hub'],
-        accessories: ['Rib Collar', '2 Buttons'], patternFollowed: 'US-81-STD-01', cmPrice: [22], cmUnit: ['CRT'],
-        cmPartner: 'Master Factory', embroideryPrint: ['Chest & Sleeve Sublimation'],
-        sizes: [{ size: 'M', quantity: 4 }, { size: 'XL', quantity: 4 }], totalQuantity: 8, 
-        images: [],
-        status: 'Stitching',
-        salesPerson: 'System Admin'
-      }];
-      setOrders(mock);
-    }
-
-    const savedNotifs = localStorage.getItem('us81_notifications');
-    if (savedNotifs) {
-      setNotifications(JSON.parse(savedNotifs));
-    } else {
-      setNotifications([{
-        id: 'n1', title: 'Welcome to US81', message: 'The portal is now active for all departments.',
-        type: 'info', timestamp: new Date().toISOString(), read: false
-      }]);
-    }
+    const initApp = async () => {
+      if (api.getToken()) {
+        try {
+          const user = await api.getCurrentUser();
+          setCurrentUser(user);
+          setProfileFormData(user);
+          const backendOrders = await api.getOrders();
+          setOrders(backendOrders);
+          const backendNotifs = await api.getNotifications();
+          setNotifications(backendNotifs);
+        } catch (error) {
+          console.error("Session failed to restore", error);
+          api.logout();
+          setCurrentUser(null);
+        }
+      }
+    };
+    initApp();
   }, []);
-
-  useEffect(() => {
-    if (orders.length > 0) localStorage.setItem('us81_orders', JSON.stringify(orders));
-  }, [orders]);
-
-  useEffect(() => {
-    localStorage.setItem('us81_notifications', JSON.stringify(notifications));
-  }, [notifications]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -102,47 +78,45 @@ const App: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const addNotification = (notif: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) => {
-    const newNotif: AppNotification = {
-      ...notif,
-      id: Math.random().toString(36).substr(2, 9),
-      timestamp: new Date().toISOString(),
-      read: false
-    };
-    setNotifications(prev => [newNotif, ...prev]);
+  const addNotification = async (notif: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) => {
+    try {
+      const newNotif = await api.createNotification(notif as any);
+      setNotifications(prev => [newNotif, ...prev]);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const handleLogin = (user: User) => {
+  const handleLogin = async (user: User) => {
     setCurrentUser(user);
     setProfileFormData(user);
-    localStorage.setItem('us81_user', JSON.stringify(user));
-    addNotification({
-      title: 'Login Successful',
-      message: `Welcome back, ${user.name}. Session established.`,
-      type: 'success'
-    });
+    try {
+      const backendOrders = await api.getOrders();
+      setOrders(backendOrders);
+      const backendNotifs = await api.getNotifications();
+      setNotifications(backendNotifs);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('us81_user');
+    api.logout();
   };
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
 
-    const updatedUser = { ...currentUser, ...profileFormData };
-    setCurrentUser(updatedUser);
-    localStorage.setItem('us81_user', JSON.stringify(updatedUser));
-
-    // Also update the users database
-    const usersDb = JSON.parse(localStorage.getItem('us81_users_db') || '[]');
-    const updatedDb = usersDb.map((u: User) => u.id === updatedUser.id ? updatedUser : u);
-    localStorage.setItem('us81_users_db', JSON.stringify(updatedDb));
-
-    setIsProfileModalOpen(false);
-    addNotification({ title: 'Profile Updated', message: 'Your personal details have been saved successfully.', type: 'info' });
+    try {
+      const updatedUser = await api.updateUser(currentUser.id, profileFormData);
+      setCurrentUser(updatedUser);
+      setIsProfileModalOpen(false);
+      addNotification({ title: 'Profile Updated', message: 'Your personal details have been saved successfully.', type: 'info' });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const addOrder = (order: Order) => {
@@ -165,8 +139,13 @@ const App: React.FC = () => {
     }
   };
 
-  const markNotifsRead = () => {
+  const markNotifsRead = async () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })));
+    try {
+      await api.markAllNotificationsRead();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const clearNotifs = () => setNotifications([]);

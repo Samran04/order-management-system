@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
 import { LogIn, UserPlus, ShieldCheck, User as UserIcon, Building2, Mail, Lock, History } from 'lucide-react';
+import { api } from '../lib/api';
 
 interface Props {
   onLogin: (user: User) => void;
@@ -56,47 +57,40 @@ const Login: React.FC<Props> = ({ onLogin }) => {
     });
   };
 
-  const getUsers = (): User[] => {
-    const users = localStorage.getItem('us81_users_db');
-    return users ? JSON.parse(users) : [];
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const users = getUsers();
 
     // Save to history on submit
     updateHistory('emails', formData.email);
-    if (isRegister) {
-      updateHistory('names', formData.name);
-      updateHistory('orgs', formData.organization);
+    setMessage(null);
+    
+    try {
+      if (isRegister) {
+        updateHistory('names', formData.name);
+        updateHistory('orgs', formData.organization);
 
-      if (users.some(u => u.email === formData.email)) {
-        setMessage({ type: 'error', text: 'Email already registered.' });
-        return;
-      }
+        await api.register({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          organization: formData.organization,
+          role: formData.role
+        });
 
-      const newUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...formData
-      };
+        setMessage({ type: 'success', text: 'Account created. Session saved.' });
+        
+        setTimeout(() => {
+          setIsRegister(false);
+          setMessage(null);
+        }, 1500);
 
-      localStorage.setItem('us81_users_db', JSON.stringify([...users, newUser]));
-      setMessage({ type: 'success', text: 'Account created. Session saved.' });
-      
-      setTimeout(() => {
-        setIsRegister(false);
-        setMessage(null);
-      }, 1500);
-
-    } else {
-      const user = users.find(u => u.email === formData.email && u.password === formData.password);
-      if (user) {
+      } else {
+        const user = await api.login(formData.email, formData.password);
         localStorage.removeItem('us81_login_draft'); // Clear draft on successful login
         onLogin(user);
-      } else {
-        setMessage({ type: 'error', text: 'Access denied. Verify credentials.' });
       }
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Access denied. Verify credentials.' });
     }
   };
 
