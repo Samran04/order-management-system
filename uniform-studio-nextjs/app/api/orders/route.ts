@@ -81,7 +81,10 @@ export async function GET(request: NextRequest) {
             // Convert dates to ISO strings
             date: order.date.toISOString(),
             startDate: order.startDate.toISOString(),
-            deliveryDate: order.deliveryDate.toISOString(),
+            // Map Enums back to frontend format
+            type: order.type === 'FinalProduction' ? 'Final Production' : 'Pre Production Sample',
+            status: order.status.replace(/([A-Z])/g, ' $1').trim(), // e.g. "OrderReceived" -> "Order Received"
+            
             // Flatten salesPerson data
             salesPerson: order.salesPerson.name,
             salesPersonId: order.salesPerson.id,
@@ -159,14 +162,28 @@ export async function POST(request: NextRequest) {
         // ==========================================
         const body = await request.json();
 
-        // Convert date strings to Date objects
+        // Extract only valid database fields to avoid Prisma "Unknown argument" errors
+        const {
+            orderNumber, clientName, brand, productName, itemDescription,
+            fabric, color, sleeve, fabricSupplier, accessories, patternFollowed,
+            cmPrice, cmUnit, cmPartner, embroideryPrint, sizes, totalQuantity,
+            images, logoImage, notes
+        } = body;
+
         const orderData = {
-            ...body,
+            orderNumber, clientName, brand, productName, itemDescription,
+            fabric, color, sleeve, fabricSupplier, accessories, patternFollowed,
+            cmPrice, cmUnit, cmPartner, embroideryPrint, sizes, totalQuantity,
+            images, logoImage, notes,
+            
             date: new Date(body.date),
             startDate: new Date(body.startDate),
-            deliveryDate: new Date(body.deliveryDate),
+            deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : new Date(),
             salesPersonId: user.userId, // Set from authenticated user
-        };
+            // Map spaces out of enums for Prisma Client
+            type: (body.type === 'Final Production' ? 'FinalProduction' : 'PreProductionSample') as any,
+            status: (body.status ? body.status.replace(/[\s/]/g, '') : 'OrderReceived') as any,
+        } as any;
 
         // ==========================================
         // 3. CHECK FOR DUPLICATE ORDER NUMBER
@@ -206,7 +223,10 @@ export async function POST(request: NextRequest) {
             ...order,
             date: order.date.toISOString(),
             startDate: order.startDate.toISOString(),
-            deliveryDate: order.deliveryDate.toISOString(),
+            // Map Enums back to frontend format
+            type: order.type === 'FinalProduction' ? 'Final Production' : 'Pre Production Sample',
+            status: order.status.replace(/([A-Z])/g, ' $1').trim(), // e.g. "OrderReceived" -> "Order Received"
+            
             salesPerson: order.salesPerson.name,
             salesPersonId: order.salesPerson.id,
         };
@@ -222,7 +242,7 @@ export async function POST(request: NextRequest) {
         // ==========================================
         console.error('Create order error:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
             { status: 500 }
         );
     }

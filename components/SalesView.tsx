@@ -268,10 +268,43 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
       (Array.from(files) as File[]).forEach((file: File) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-          const base64String = reader.result as string;
-          const newItems = [...items];
-          newItems[itemIndex].images = [...newItems[itemIndex].images, base64String];
-          setItems(newItems);
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const MAX_SIZE = 800;
+
+            if (width > height) {
+              if (width > MAX_SIZE) {
+                height = Math.round((height * MAX_SIZE) / width);
+                width = MAX_SIZE;
+              }
+            } else {
+              if (height > MAX_SIZE) {
+                width = Math.round((width * MAX_SIZE) / height);
+                height = MAX_SIZE;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+              
+              setItems(prevItems => {
+                const newItems = [...prevItems];
+                newItems[itemIndex] = {
+                  ...newItems[itemIndex],
+                  images: [...newItems[itemIndex].images, compressedBase64]
+                };
+                return newItems;
+              });
+            }
+          };
+          img.src = reader.result as string;
         };
         reader.readAsDataURL(file);
       });
@@ -331,9 +364,9 @@ const SalesView: React.FC<Props> = ({ orders, onAddOrder, onUpdateOrder, current
 
       setShowForm(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save sheet", error);
-      alert("Failed to save orders. The payloads may be too large. Try uploading smaller reference images.");
+      alert(`Failed to save orders. Error: ${error?.message || String(error)}`);
     } finally {
       setIsSaving(false);
     }
