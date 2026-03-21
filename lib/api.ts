@@ -4,7 +4,7 @@ import type {
     AppNotification,
 } from '../types';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = (import.meta as any).env?.VITE_API_URL || '';
 
 class ApiClient {
     private token: string | null = null;
