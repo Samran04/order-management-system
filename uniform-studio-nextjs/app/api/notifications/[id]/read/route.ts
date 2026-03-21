@@ -23,9 +23,10 @@ import { authenticateRequest } from '@/lib/auth';
  */
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         // Authenticate request
         const user = authenticateRequest(request.headers.get('authorization'));
         if (!user) {
@@ -35,7 +36,7 @@ export async function PUT(
         // Update notification
         const notification = await prisma.notification.update({
             where: {
-                id: params.id,
+                id: resolvedParams.id,
                 userId: user.userId, // Ensure user owns this notification
             },
             data: {

@@ -24,9 +24,10 @@ import { authenticateRequest } from '@/lib/auth';
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         // Authenticate request
         const userPayload = authenticateRequest(request.headers.get('authorization'));
         if (!userPayload) {
@@ -35,7 +36,7 @@ export async function GET(
 
         // Fetch user from database
         const user = await prisma.user.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             select: {
                 id: true,
                 email: true,
@@ -76,9 +77,10 @@ export async function GET(
  */
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         // Authenticate request
         const userPayload = authenticateRequest(request.headers.get('authorization'));
         if (!userPayload) {
@@ -86,7 +88,7 @@ export async function PUT(
         }
 
         // Check if user is updating their own profile or is Admin
-        if (userPayload.userId !== params.id && userPayload.role !== 'Admin') {
+        if (userPayload.userId !== resolvedParams.id && userPayload.role !== 'Admin') {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -96,7 +98,7 @@ export async function PUT(
 
         // Update user (only allow updating name and organization)
         const user = await prisma.user.update({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             data: {
                 ...(name && { name }),
                 ...(organization !== undefined && { organization }),

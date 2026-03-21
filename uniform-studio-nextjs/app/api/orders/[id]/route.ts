@@ -25,9 +25,10 @@ import { authenticateRequest } from '@/lib/auth';
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         // Authenticate request
         const user = authenticateRequest(request.headers.get('authorization'));
         if (!user) {
@@ -36,7 +37,7 @@ export async function GET(
 
         // Fetch order from database
         const order = await prisma.order.findUnique({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             include: {
                 salesPerson: {
                     select: { id: true, name: true, email: true, role: true },
@@ -84,9 +85,10 @@ export async function GET(
  */
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         // Authenticate request
         const user = authenticateRequest(request.headers.get('authorization'));
         if (!user) {
@@ -104,7 +106,7 @@ export async function PUT(
 
         // Update order in database
         const order = await prisma.order.update({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
             data: updateData,
             include: {
                 salesPerson: {
@@ -148,9 +150,10 @@ export async function PUT(
  */
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         // Authenticate request
         const user = authenticateRequest(request.headers.get('authorization'));
         if (!user) {
@@ -164,7 +167,7 @@ export async function DELETE(
 
         // Delete order from database
         await prisma.order.delete({
-            where: { id: params.id },
+            where: { id: resolvedParams.id },
         });
 
         return NextResponse.json({ message: 'Order deleted successfully' });
