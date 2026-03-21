@@ -18,7 +18,9 @@ import { z } from 'zod';
  * Ensures all required fields are provided and valid
  */
 const registerSchema = z.object({
-    email: z.string().email('Invalid email address'),
+    email: z.string().email('Invalid email address').refine(email => email.toLowerCase().endsWith('@studio81.com'), {
+        message: 'Email must belong to @studio81.com domain',
+    }),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     name: z.string().min(2, 'Name must be at least 2 characters'),
     role: z.enum(['Admin', 'Sales', 'Production'], {

@@ -18,7 +18,9 @@ import { z } from 'zod';
  * Ensures email and password are provided
  */
 const loginSchema = z.object({
-    email: z.string().email('Invalid email address'),
+    email: z.string().email('Invalid email address').refine(email => email.toLowerCase().endsWith('@studio81.com'), {
+        message: 'Email must belong to @studio81.com domain',
+    }),
     password: z.string().min(1, 'Password is required'),
 });
 
