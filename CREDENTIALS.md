@@ -24,7 +24,7 @@ This application uses a **registration-based authentication system** with data s
    |-------|-------------|---------|
    | **Name** | Your full name | John Smith |
    | **Organization** | Your company name | Uniform Studio 81 |
-   | **Email** | Your work email address | john.smith@studio81.com |
+   | **Email** | Your work email address | john.smith@efzeefashion.com |
    | **Password** | Choose a secure password | YourSecurePassword123 |
    | **Role** | Select your department role | Admin / Sales / Production |
 
@@ -42,7 +42,7 @@ Create these accounts for testing different roles:
 ```
 Name:         System Admin
 Organization: Uniform Studio 81
-Email:        admin@studio81.com
+Email:        admin@efzeefashion.com
 Password:     admin123
 Role:         Admin
 ```
@@ -54,7 +54,7 @@ Role:         Admin
 ```
 Name:         Sarah Johnson
 Organization: Uniform Studio 81
-Email:        sales@studio81.com
+Email:        sales@efzeefashion.com
 Password:     sales123
 Role:         Sales
 ```
@@ -66,7 +66,7 @@ Role:         Sales
 ```
 Name:         Mike Chen
 Organization: Uniform Studio 81
-Email:        production@studio81.com
+Email:        production@efzeefashion.com
 Password:     prod123
 Role:         Production
 ```
@@ -172,7 +172,7 @@ Since this is a localStorage-based system:
 ### Multiple Accounts?
 - ✅ Each email can only have one account
 - ✅ Use different email addresses for different test accounts
-- ✅ Example: admin@studio81.com, sales@studio81.com, etc.
+- ✅ Example: admin@efzeefashion.com, sales@efzeefashion.com, etc.
 
 ---
 

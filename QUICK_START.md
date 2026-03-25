@@ -29,7 +29,7 @@ This will start the development server at `http://localhost:5173`
 2. Fill in your details:
    - Name: `System Admin`
    - Organization: `Uniform Studio 81`
-   - Email: `admin@studio81.com`
+   - Email: `admin@efzeefashion.com`
    - Password: `admin123`
    - Role: `Admin`
 3. Click **Create Account**
@@ -53,17 +53,17 @@ Create these for testing:
 
 ```
 👤 Admin
-Email:    admin@studio81.com
+Email:    admin@efzeefashion.com
 Password: admin123
 Role:     Admin
 
 👤 Sales
-Email:    sales@studio81.com
+Email:    sales@efzeefashion.com
 Password: sales123
 Role:     Sales
 
 👤 Production
-Email:    production@studio81.com
+Email:    production@efzeefashion.com
 Password: prod123
 Role:     Production
 ```

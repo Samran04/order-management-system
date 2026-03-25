@@ -78,7 +78,7 @@ The system uses a registration-based authentication. On first use, you'll need t
 To create a demo account for testing, register with these details:
 - **Name:** System Admin
 - **Organization:** Uniform Studio 81
-- **Email:** admin@studio81.com
+- **Email:** admin@efzeefashion.com
 - **Password:** admin123
 - **Role:** Admin
 
