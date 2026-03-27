@@ -99,7 +99,17 @@ export async function POST(request: NextRequest) {
         }
 
         // ==========================================
-        // 4. GENERATE JWT TOKEN
+        // 4. CHECK EMAIL VERIFICATION
+        // ==========================================
+        if (!user.emailVerified) {
+            return NextResponse.json(
+                { error: 'Email not verified. Please check your inbox for the verification link.' },
+                { status: 403 }
+            );
+        }
+
+        // ==========================================
+        // 5. GENERATE JWT TOKEN
         // ==========================================
         const token = generateToken({
             userId: user.id,

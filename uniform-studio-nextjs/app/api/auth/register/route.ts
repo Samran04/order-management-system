@@ -6,7 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { hashPassword, generateToken } from '@/lib/auth';
+import { hashPassword, generateToken, generateResetToken } from '@/lib/auth';
+import { sendVerificationEmail } from '@/lib/mail';
 import { z } from 'zod';
 
 // ============================================
@@ -108,23 +109,24 @@ export async function POST(request: NextRequest) {
                 name,
                 role,
                 organization,
+                verificationToken: generateResetToken(),
+                emailVerified: false,
             },
         });
 
         // ==========================================
-        // 5. GENERATE JWT TOKEN
+        // 5. SEND VERIFICATION EMAIL
         // ==========================================
-        const token = generateToken({
-            userId: user.id,
-            email: user.email,
-            role: user.role,
-        });
+        if (user.verificationToken) {
+            await sendVerificationEmail(user.email, user.verificationToken);
+        }
 
         // ==========================================
         // 6. RETURN SUCCESS RESPONSE
         // ==========================================
         return NextResponse.json(
             {
+                message: 'Registration successful. Please check your email to verify your account.',
                 user: {
                     id: user.id,
                     email: user.email,
@@ -132,7 +134,6 @@ export async function POST(request: NextRequest) {
                     role: user.role,
                     organization: user.organization,
                 },
-                token,
             },
             { status: 201 } // 201 Created
         );
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
         // ==========================================
         console.error('Registration error:', error);
         return NextResponse.json(
-            { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
+            { error: error instanceof Error ? error.message : 'Internal server error' },
             { status: 500 }
         );
     }

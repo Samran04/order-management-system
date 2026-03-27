@@ -42,6 +42,10 @@ const App: React.FC = () => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
   
+  // Auth tokens from URL
+  const [resetToken, setResetToken] = useState<string | null>(null);
+  const [verifyToken, setVerifyToken] = useState<string | null>(null);
+  
   const searchRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   
@@ -67,6 +71,13 @@ const App: React.FC = () => {
       }
     };
     initApp();
+
+    // Check for tokens in URL
+    const params = new URLSearchParams(window.location.search);
+    const rt = params.get('resetToken');
+    const vt = params.get('verifyToken');
+    if (rt) setResetToken(rt);
+    if (vt) setVerifyToken(vt);
   }, []);
 
   useEffect(() => {
@@ -164,7 +175,24 @@ const App: React.FC = () => {
     setActiveView('Production');
   };
 
-  if (!currentUser) return <Login onLogin={handleLogin} />;
+  const handleClearTokens = () => {
+    setResetToken(null);
+    setVerifyToken(null);
+    // Remove params from URL without reload
+    const url = new URL(window.location.href);
+    url.searchParams.delete('resetToken');
+    url.searchParams.delete('verifyToken');
+    window.history.replaceState({}, '', url);
+  };
+
+  if (!currentUser) return (
+    <Login 
+      onLogin={handleLogin} 
+      initialResetToken={resetToken} 
+      initialVerifyToken={verifyToken} 
+      onClearTokens={handleClearTokens}
+    />
+  );
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

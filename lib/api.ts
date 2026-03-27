@@ -55,13 +55,32 @@ class ApiClient {
         return data.user;
     }
 
-    async register(userData: Partial<User>): Promise<User> {
-        const data = await this.request<any>('/api/auth/register', {
+    async register(userData: Partial<User>): Promise<{ user: User; message: string }> {
+        return this.request<any>('/api/auth/register', {
             method: 'POST',
             body: JSON.stringify(userData),
         });
-        this.setToken(data.token);
-        return data.user;
+    }
+
+    async verifyEmail(token: string): Promise<{ message: string }> {
+        return this.request<any>('/api/auth/verify-email', {
+            method: 'POST',
+            body: JSON.stringify({ token }),
+        });
+    }
+
+    async forgotPassword(email: string): Promise<{ message: string }> {
+        return this.request<any>('/api/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        });
+    }
+
+    async resetPassword(token: string, password: string): Promise<{ message: string }> {
+        return this.request<any>('/api/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify({ token, password }),
+        });
     }
 
     logout() { this.clearToken(); }
