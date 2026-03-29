@@ -138,8 +138,9 @@ const Login: React.FC<Props> = ({ onLogin, initialResetToken, initialVerifyToken
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email.toLowerCase().endsWith('@efzeefashion.com')) {
-      setMessage({ type: 'error', text: 'Access denied: Must use a @efzeefashion.com email address.' });
+    const lowerEmail = formData.email.toLowerCase();
+    if (!lowerEmail.endsWith('@efzeefashion.com') && lowerEmail !== 'muhammadsamran04@gmail.com') {
+      setMessage({ type: 'error', text: 'Access denied: Must use a @efzeefashion.com email address or be an authorized admin.' });
       return;
     }
 
@@ -301,7 +302,15 @@ const Login: React.FC<Props> = ({ onLogin, initialResetToken, initialVerifyToken
 
               <div className="space-y-0.5">
                 <label className={labelClass}><Mail size={10} /> Work Email</label>
-                <input type="email" required pattern=".*@efzeefashion\.com$" title="Must be a @efzeefashion.com email address" list="emails-list" className={inputClass} placeholder="id@efzeefashion.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                <input 
+                  type="email" 
+                  required 
+                  list="emails-list" 
+                  className={inputClass} 
+                  placeholder="id@efzeefashion.com" 
+                  value={formData.email} 
+                  onChange={e => setFormData({...formData, email: e.target.value})} 
+                />
                 <datalist id="emails-list">{history.emails.map(h => <option key={h} value={h} />)}</datalist>
               </div>
 
