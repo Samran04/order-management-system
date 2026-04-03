@@ -217,7 +217,7 @@ const App: React.FC = () => {
             { v: 'Dashboard', i: LayoutDashboard, l: 'Dashboard' },
             { v: 'Sales', i: ShoppingCart, l: 'Sales' },
             { v: 'Production', i: Factory, l: 'Production' },
-            { v: 'Delivery', i: Truck, l: 'Quality' }
+            { v: 'Delivery', i: Truck, l: 'Delivery' }
           ].map(item => (
             <button key={item.v} onClick={() => { setActiveView(item.v as any); setSelectedOrderIdFromSearch(null); }}
               className={`w-full flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-200 ${

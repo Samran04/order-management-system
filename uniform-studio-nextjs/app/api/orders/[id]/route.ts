@@ -98,11 +98,39 @@ export async function PUT(
         // Parse request body
         const body = await request.json();
 
+        // Build a clean update payload with only valid Prisma fields.
+        // Strip out frontend-only or relation fields: id, salesPerson (string),
+        // salesPersonId, postDelivery, createdAt, updatedAt.
+        const {
+            orderNumber, clientName, brand, productName, itemDescription,
+            fabric, color, sleeve, fabricSupplier, accessories, patternFollowed,
+            cmPrice, cmUnit, cmPartner, embroideryPrint, sizes, totalQuantity,
+            images, logoImage, notes, status, type,
+            date: rawDate, startDate: rawStartDate, deliveryDate: rawDeliveryDate,
+        } = body;
+
+        const updateData: any = {
+            orderNumber, clientName, brand, productName, itemDescription,
+            fabric, color, sleeve, fabricSupplier, accessories, patternFollowed,
+            cmPrice, cmUnit, cmPartner, embroideryPrint, sizes, totalQuantity,
+            images, logoImage, notes,
+        };
+
         // Convert date strings to Date objects if present
-        const updateData: any = { ...body };
-        if (body.date) updateData.date = new Date(body.date);
-        if (body.startDate) updateData.startDate = new Date(body.startDate);
-        if (body.deliveryDate) updateData.deliveryDate = new Date(body.deliveryDate);
+        if (rawDate) updateData.date = new Date(rawDate);
+        if (rawStartDate) updateData.startDate = new Date(rawStartDate);
+        if (rawDeliveryDate) updateData.deliveryDate = new Date(rawDeliveryDate);
+
+        // Normalize enum values (frontend sends human-readable strings)
+        if (type) {
+            updateData.type = (type === 'Final Production' ? 'FinalProduction' : 'PreProductionSample') as any;
+        }
+        if (status) {
+            updateData.status = status.replace(/[\s/]/g, '') as any;
+        }
+
+        // Remove undefined keys to avoid overwriting with null
+        Object.keys(updateData).forEach(k => updateData[k] === undefined && delete updateData[k]);
 
         // Update order in database
         const order = await prisma.order.update({
