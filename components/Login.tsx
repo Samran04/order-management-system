@@ -138,11 +138,6 @@ const Login: React.FC<Props> = ({ onLogin, initialResetToken, initialVerifyToken
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const lowerEmail = formData.email.toLowerCase();
-    if (!lowerEmail.endsWith('@efzeefashion.com') && lowerEmail !== 'muhammadsamran04@gmail.com') {
-      setMessage({ type: 'error', text: 'Access denied: Must use a @efzeefashion.com email address or be an authorized admin.' });
-      return;
-    }
 
     updateHistory('emails', formData.email);
     setMessage(null);

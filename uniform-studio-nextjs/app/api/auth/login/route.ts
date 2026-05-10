@@ -18,12 +18,7 @@ import { z } from 'zod';
  * Ensures email and password are provided
  */
 const loginSchema = z.object({
-    email: z.string().email('Invalid email address').refine(email => {
-        const lowerEmail = email.toLowerCase();
-        return lowerEmail.endsWith('@efzeefashion.com') || lowerEmail === 'muhammadsamran04@gmail.com';
-    }, {
-        message: 'Email must belong to @efzeefashion.com domain or be an authorized admin email',
-    }),
+    email: z.string().email('Invalid email address'),
     password: z.string().min(1, 'Password is required'),
 });
 
